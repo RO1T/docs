@@ -1,3 +1,38 @@
+<?php
+
+include "db.php";
+
+$message = "";
+
+if (!empty($_FILES)) {
+    $file = $_FILES['filename'];
+    $name = $file['name'];
+    $extension = explode('.', $file['name'])[1];
+    if (!empty($_POST['newFilename'])) {
+        $name = $_POST['newFilename'].'.'.$extension;
+    }
+    $path = __DIR__.'/docs/'.$name;
+
+    if (!move_uploaded_file($file['tmp_name'], $path)) {
+        $message = "Файл не закачен!";
+    }
+
+    $sql = "INSERT INTO docs (name, path) VALUES ('$name', '$path')";
+
+    try {
+        mysqli_query($conn, $sql);
+        $message =  "Файл закачен!";
+    }
+    catch(Exception $e) {
+        $message =  $e->getMessage();
+    }
+
+    mysqli_close($conn);
+}
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -15,37 +50,6 @@
         <input type="text" name="newFilename"><br>
         <input type="submit" name="submit" value="Закачать">
     </form>
+    <?php echo $message; ?>
 </body>
 </html>
-
-<?php
-
-include "db.php";
-
-if (!empty($_FILES)) {
-    $file = $_FILES['filename'];
-    $name = $file['name'];
-    $extension = explode('.', $file['name'])[1];
-    if (!empty($_POST['newFilename'])){
-        $name = $_POST['newFilename'].'.'.$extension;
-    }
-    $path = __DIR__.'/docs/'.$name;
-
-    if (!move_uploaded_file($file['tmp_name'], $path)) {
-        echo "Файл не закачен!";
-    }
-
-    $sql = "INSERT INTO docs (name, path) VALUES ('$name', '$path')";
-
-    try{
-        mysqli_query($conn, $sql);
-        echo "Файл закачен!";
-    }
-    catch(Exception $e){
-        echo $e->getMessage();
-    }
-
-    mysqli_close($conn);
-}
-
-?>

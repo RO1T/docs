@@ -1,3 +1,19 @@
+<?php   
+    include "db.php";
+    $arr = [];
+    if(isset($_GET['search'])) {
+        $sql = "SELECT * FROM docs WHERE name LIKE '%".$_GET['search']."%'";
+        $result = mysqli_query($conn, $sql);
+
+        if (mysqli_num_rows($result) > 0) {
+            while($row = mysqli_fetch_assoc($result)) {
+                array_push($arr, "<li>".$row['name']."</li>");
+            }
+        }
+        mysqli_close($conn);
+    }
+?>
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -14,21 +30,10 @@
         <input type="text" name="search">
         <input type="submit" value="Искать">
     </form>
+    <ul>
+        <?php
+            echo implode(" ", $arr);
+        ?>
+    </ul>
 </body>
 </html>
-
-
-<?php   
-    include "db.php";
-    if(isset($_GET['search'])){
-        $sql = "SELECT * FROM docs WHERE name LIKE '%".$_GET['search']."%'";
-        $result = mysqli_query($conn, $sql);
-
-        if (mysqli_num_rows($result) > 0) {
-            while($row = mysqli_fetch_assoc($result)) {
-                echo $row['name']."<br>";
-            }
-        }
-    }
-    mysqli_close($conn);
-?>
