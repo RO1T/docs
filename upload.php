@@ -4,32 +4,36 @@ include "db.php";
 
 $message = "";
 
-if (!empty($_FILES)) {
-    $file = $_FILES['filename'];
-    $name = $file['name'];
-    $extension = explode('.', $file['name'])[1];
-    if (!empty($_POST['newFilename'])) {
-        $name = $_POST['newFilename'].'.'.$extension;
+if (isset($_POST["submit"])) 
+{
+    $extenstion = pathinfo($_FILES["file"]["name"], PATHINFO_EXTENSION);
+    if (!empty($_POST["newName"]))
+    {
+        $_FILES["file"]["name"] = $_POST["newName"] . "." . $extenstion;
     }
-    $path = __DIR__.'/docs/'.$name;
+    $filename = $_FILES["file"]["name"];
 
-    if (!move_uploaded_file($file['tmp_name'], $path)) {
-        $message = "Файл не закачен!";
+    $destination = "docs/" . $filename;
+
+    $file = $_FILES["file"]["tmp_name"];
+
+    if(move_uploaded_file($file, $destination))
+    {
+        $sql = "INSERT INTO docs (name) 
+        VALUES ('$filename')";
+
+        try 
+        {
+            mysqli_query($conn, $sql);
+            $message = "Файл загружен!";
+        }
+        catch (mysqli_sql_exception) 
+        {
+            $message = "Что-то пошло не так..";
+        }
     }
-
-    $sql = "INSERT INTO docs (name, path) VALUES ('$name', '$path')";
-
-    try {
-        mysqli_query($conn, $sql);
-        $message =  "Файл закачен!";
-    }
-    catch(Exception $e) {
-        $message =  $e->getMessage();
-    }
-
     mysqli_close($conn);
 }
-
 ?>
 
 
@@ -45,9 +49,9 @@ if (!empty($_FILES)) {
     <a href="index.php">Вернуться.</a>
     <hr>
     <form action="<?php $_SERVER['PHP_SELF']?>" method="post" enctype="multipart/form-data">
-        <input type="file" name="filename"><br>
-        <label for="newFilename">Имя файла:</label>
-        <input type="text" name="newFilename"><br>
+        <input type="file" name="file"><br>
+        <label for="newName">Опционально:</label><br>
+        <input type="text" name="newName" placeholder="Имя документа"><br>
         <input type="submit" name="submit" value="Закачать">
     </form>
     <?php echo $message; ?>
